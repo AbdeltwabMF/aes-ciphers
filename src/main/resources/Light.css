@@ -1,0 +1,38 @@
+.label {
+    -fx-font: 14px Ubuntu;
+    -fx-padding: 0.5em 1em 0;
+}
+
+.bordered-titled-title {
+    -fx-background-color: #f4f4f4;
+    -fx-translate-y: -16;
+}
+
+.bordered-titled-border {
+    -fx-content-display: top;
+    -fx-border-insets: 20 15 15 15;
+    -fx-background-color: #f4f4f4;
+    -fx-border-color: rgba(150, 150, 150, 0.5);
+    -fx-border-width: 2;
+}
+
+.bordered-titled-content {
+    -fx-padding: 26 10 10 10;
+}
+
+.button{
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-color: linear-gradient(#00b4db, #0083b0);
+}
+
+.combo-box{
+    -fx-background-color: linear-gradient(#00b4db, #0083b0);
+    -fx-font-weight: bold;
+}
+
+#ECB{
+    -fx-color: black;
+}
+
