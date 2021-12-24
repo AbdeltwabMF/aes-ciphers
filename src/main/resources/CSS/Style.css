@@ -1,0 +1,72 @@
+@font-face {
+	font-family: "binchotan";
+	src: url("../Fonts/binchotan.ttf");
+}
+
+@font-face {
+	font-family: "Ubuntu-Regular";
+	src: url("../Fonts/Ubuntu-Regular.ttf");
+}
+
+.root {
+    -fx-font-family: "binchotan";
+}
+
+.label {
+    -fx-font-size: 14px;
+    -fx-font-family: "Ubuntu-Regular";
+}
+
+.bordered-titled-title {
+    -fx-background-color: #f4f4f4;
+
+    -fx-padding: 0.5em 1em 0;
+
+    -fx-translate-y: -16;
+}
+
+.bordered-titled-border {
+    -fx-background-color: #f4f4f4;
+
+    -fx-content-display: top;
+
+    -fx-border-insets: 20 15 15 15;
+    -fx-border-color: rgba(150, 150, 150, 0.5);
+    -fx-border-width: 2;
+}
+
+.bordered-titled-content {
+    -fx-padding: 26 10 10 10;
+}
+
+.button {
+    -fx-background-color: linear-gradient(#00b4db, #0083b0);
+    -fx-background-radius: 6;
+
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.combo-box {
+    -fx-background-color: linear-gradient(#00b4db, #0083b0);
+    -fx-background-radius: 6;
+}
+
+.combo-box .list-cell {
+    -fx-color: black;
+    -fx-font-weight: bold;
+}
+
+.combo-box .combo-box-popup .list-cell {
+     -fx-background-color: #EEE;
+     -fx-text-fill: black;
+}
+
+.combo-box .combo-box-popup .list-cell:hover {
+    -fx-background-color: linear-gradient(#00b4db, #0083b0);
+    -fx-text-fill: white;
+}
+
+.combo-box-base .arrow-button .arrow {
+    -fx-background-color: #FFF;
+}
