@@ -11,6 +11,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import utility.CBC;
+import utility.ECB;
+import utility.Hex;
 import utility.KeyManager;
 
 import java.io.File;
@@ -18,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Scanner;
@@ -28,12 +32,28 @@ public class UserInterface extends Application {
     private File fileToBeProcessed;
     private double width, height;
     private TextField keyTextField;
-    private Alert errorAlert;
+    private Alert errorAlert, infoAlert;
+    private byte[] decryptedFileBytes, encryptedFileBytes;
+    private FileChooser decryptedFileChooser, encryptedFileChooser;
+    private File decryptedFile, encryptedFile;
 
     @Override
     public void start(Stage stage) throws IOException {
         errorAlert = new Alert(Alert.AlertType.ERROR);
         errorAlert.setHeaderText(null);
+
+        infoAlert = new Alert(Alert.AlertType.INFORMATION);
+        infoAlert.setHeaderText(null);
+
+        decryptedFileChooser = new FileChooser();
+        decryptedFileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
+
+        encryptedFileChooser = new FileChooser();
+        encryptedFileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("All Files", "*.*")
+        );
 
         Font.loadFont(getClass().getResourceAsStream("/Fonts/Ubuntu-Regular.ttf"), 16);
         width = 500;
@@ -60,7 +80,9 @@ public class UserInterface extends Application {
 
         browseButton.setOnAction(e -> {
             fileToBeProcessed = fileChooser.showOpenDialog(stage);
-            filePathTextField.setText(fileToBeProcessed.getPath());
+            if(fileToBeProcessed != null ){
+                filePathTextField.setText(fileToBeProcessed.getPath());
+            }
         });
 
         HBox browseAndPathHBox = makeHBox();
@@ -164,12 +186,35 @@ public class UserInterface extends Application {
 
         encryptButton.setOnAction(e -> {
             int selected_index = modes.getSelectionModel().getSelectedIndex();
+            if(fileToBeProcessed == null){
+                errorAlert.setContentText("You must choose a file");
+                errorAlert.showAndWait();
+                return;
+            }
             switch (selected_index) {
                 case 0:
                     //ECB
+                    ECB ecb = new ECB();
+                    try {
+                        encryptedFileBytes = ecb.encrypt(Hex.toHex(keyTextField.getText()).getBytes(),
+                                            Files.readAllBytes(fileToBeProcessed.toPath()));
+                        showSuccessAndSaveEncryptedFile();
+                    } catch (Exception ex) {
+                        errorAlert.setContentText(ex.getLocalizedMessage());
+                        errorAlert.showAndWait();
+                    }
                     break;
                 case 1:
                     //CBC
+                    CBC cbc = new CBC();
+                    try {
+                        encryptedFileBytes = cbc.encrypt(Hex.toHex(keyTextField.getText()).getBytes(),
+                                Files.readAllBytes(fileToBeProcessed.toPath()));
+                        showSuccessAndSaveEncryptedFile();
+                    } catch (Exception ex) {
+                        errorAlert.setContentText(ex.getLocalizedMessage());
+                        errorAlert.showAndWait();
+                    }
                     break;
                 case 2:
                     //CTR
@@ -177,18 +222,41 @@ public class UserInterface extends Application {
                 default:
                     errorAlert.setContentText("Select encryption mode!");
                     errorAlert.showAndWait();
-                    break;
+                    return;
             }
         });
 
         decryptButton.setOnAction(e -> {
             int selected_index = modes.getSelectionModel().getSelectedIndex();
+            if(fileToBeProcessed == null){
+                errorAlert.setContentText("You must choose a file");
+                errorAlert.showAndWait();
+                return;
+            }
             switch (selected_index) {
                 case 0:
                     //ECB
+                    ECB ecb = new ECB();
+                    try {
+                        decryptedFileBytes = ecb.decrypt(Hex.toHex(keyTextField.getText()).getBytes(),
+                                Files.readAllBytes(fileToBeProcessed.toPath()));
+                        showSuccessAndSaveDecryptedFile();
+                    } catch (Exception ex) {
+                        errorAlert.setContentText(ex.getLocalizedMessage());
+                        errorAlert.showAndWait();
+                    }
                     break;
                 case 1:
                     //CBC
+                    CBC cbc = new CBC();
+                    try {
+                        decryptedFileBytes = cbc.decrypt(Hex.toHex(keyTextField.getText()).getBytes(),
+                                Files.readAllBytes(fileToBeProcessed.toPath()));
+                        showSuccessAndSaveDecryptedFile();
+                    } catch (Exception ex) {
+                        errorAlert.setContentText(ex.getLocalizedMessage());
+                        errorAlert.showAndWait();
+                    }
                     break;
                 case 2:
                     //CTR
@@ -213,6 +281,24 @@ public class UserInterface extends Application {
         vBox.getChildren().addAll(chooseFileTitledBorder, keyTitledBorder, modesAndOperationsBorder);
 
         homeScene = new Scene(vBox, width, height);
+    }
+
+    private void showSuccessAndSaveDecryptedFile() throws IOException {
+        infoAlert.setHeaderText("File decrypted successfully!");
+        infoAlert.showAndWait();
+        decryptedFile = decryptedFileChooser.showSaveDialog(stage);
+        if(decryptedFile != null){
+            Files.write(decryptedFile.toPath(), decryptedFileBytes);
+        }
+    }
+
+    private void showSuccessAndSaveEncryptedFile() throws IOException {
+        infoAlert.setHeaderText("File encrypted successfully!");
+        infoAlert.showAndWait();
+        encryptedFile = encryptedFileChooser.showSaveDialog(stage);
+        if(encryptedFile != null){
+            Files.write(encryptedFile.toPath(), encryptedFileBytes);
+        }
     }
 
     private GridPane makeGridPane() {
