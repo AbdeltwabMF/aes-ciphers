@@ -5,6 +5,6 @@ module UserInterface {
   requires org.kordamp.ikonli.javafx;
   requires org.kordamp.bootstrapfx.core;
 
-  opens UserInterface to javafx.fxml;
-  exports UserInterface;
+  opens userInterface to javafx.fxml;
+  exports userInterface;
 }
