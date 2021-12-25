@@ -1,17 +1,16 @@
 package userInterface;
 
 import ciphers.*;
-
 import javafx.application.Application;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -19,11 +18,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import java.nio.file.Files;
-
 import java.security.NoSuchAlgorithmException;
-
 import java.util.Scanner;
 
 public class UserInterface extends Application {
@@ -38,6 +34,10 @@ public class UserInterface extends Application {
   private Alert errorAlert, infoAlert;
   private byte[] decryptedFileBytes, encryptedFileBytes;
   private KeyManager keyManager;
+
+  public static void main(String[] args) {
+    launch();
+  }
 
   @Override
   public void start(Stage stage) {
@@ -131,6 +131,7 @@ public class UserInterface extends Application {
             break;
         }
       } catch (NoSuchAlgorithmException ex) {
+        ex.printStackTrace();
         errorAlert.setContentText("Error on Generating key");
         errorAlert.showAndWait();
       }
@@ -141,7 +142,7 @@ public class UserInterface extends Application {
     loadKey.setMaxWidth(150);
 
     loadKey.setOnAction(e -> {
-      if(keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
+      if (keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
         errorAlert.setContentText("Set a key size first!");
         errorAlert.showAndWait();
         return;
@@ -158,7 +159,72 @@ public class UserInterface extends Application {
           Scanner sc = new Scanner(keyFile);
           String loadedKey = sc.next();
           keyTextField.setText(loadedKey);
+
+          String keyTextFieldString = keyTextField.getText().trim();
+          byte[] keyTextFieldBytes = keyTextFieldString.getBytes();
+          int keyBitSizeSelected = keyBitSize.getSelectionModel().getSelectedIndex();
+          try {
+            if ((keyTextFieldString.length() == 32
+              || keyTextFieldString.length() == 48
+              || keyTextFieldString.length() == 64)
+              && Validate.checkHex(keyTextFieldString)) {
+              keyTextFieldBytes = Validate.hexToByte(keyTextFieldString);
+
+              switch (keyTextFieldString.length()) {
+                case 32:
+                  if(keyBitSizeSelected != 0) {
+                    errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+                    errorAlert.showAndWait();
+                  }
+                  break;
+                case 48:
+                  if(keyBitSizeSelected != 1) {
+                    errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+                    errorAlert.showAndWait();
+                  }
+                  break;
+                case 64:
+                  if(keyBitSizeSelected != 2) {
+                    errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+                    errorAlert.showAndWait();
+                  }
+                  break;
+                default:
+                  errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+                  errorAlert.showAndWait();
+                  return;
+              }
+            } else {
+              switch (keyTextFieldString.length()) {
+                case 8:
+                  if(keyBitSizeSelected != 0) {
+                    errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+                    errorAlert.showAndWait();
+                  }
+                  break;
+                case 12:
+                  if(keyBitSizeSelected != 1) {
+                    errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+                    errorAlert.showAndWait();
+                  }
+                  break;
+                case 16:
+                  if(keyBitSizeSelected != 2) {
+                    errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+                    errorAlert.showAndWait();
+                  }
+                  break;
+                default:
+                  errorAlert.setContentText("Wrong key size.\nKey might be a string of length(8, 12, or 16)");
+                  errorAlert.showAndWait();
+                  return;
+              }
+            }
+          } catch (Exception ex) {
+            ex.printStackTrace();
+          }
         } catch (Exception ex) {
+          ex.printStackTrace();
           errorAlert.setContentText("Choose a valid txt file!");
           errorAlert.showAndWait();
         }
@@ -186,6 +252,7 @@ public class UserInterface extends Application {
           printWriter.println(keyTextField.getText().trim());
           printWriter.close();
         } catch (FileNotFoundException ex) {
+          ex.printStackTrace();
           errorAlert.setContentText("Error on Saving file!");
           errorAlert.showAndWait();
         }
@@ -224,7 +291,7 @@ public class UserInterface extends Application {
         return;
       }
 
-      if(keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
+      if (keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
         errorAlert.setContentText("Set a key size first!");
         errorAlert.showAndWait();
         return;
@@ -233,7 +300,10 @@ public class UserInterface extends Application {
       String keyTextFieldString = keyTextField.getText().trim();
       byte[] keyTextFieldBytes = keyTextFieldString.getBytes();
       try {
-        if (Validate.checkHex(keyTextFieldString)) {
+        if ((keyTextFieldString.length() == 32
+          || keyTextFieldString.length() == 48
+          || keyTextFieldString.length() == 64)
+          && Validate.checkHex(keyTextFieldString)) {
           keyTextFieldBytes = Validate.hexToByte(keyTextFieldString);
 
           switch (keyTextFieldString.length()) {
@@ -317,6 +387,7 @@ public class UserInterface extends Application {
             encryptedFileBytes = ecb.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
+            ex.printStackTrace();
             errorAlert.setContentText(ex.getLocalizedMessage());
             errorAlert.showAndWait();
           }
@@ -328,6 +399,7 @@ public class UserInterface extends Application {
             encryptedFileBytes = cbc.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
+            ex.printStackTrace();
             errorAlert.setContentText(ex.getLocalizedMessage());
             errorAlert.showAndWait();
           }
@@ -339,6 +411,7 @@ public class UserInterface extends Application {
             encryptedFileBytes = ctr.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
+            ex.printStackTrace();
             errorAlert.setContentText(ex.getLocalizedMessage());
             errorAlert.showAndWait();
           }
@@ -359,7 +432,7 @@ public class UserInterface extends Application {
         return;
       }
 
-      if(keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
+      if (keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
         errorAlert.setContentText("Set a key size first!");
         errorAlert.showAndWait();
         return;
@@ -451,6 +524,7 @@ public class UserInterface extends Application {
             decryptedFileBytes = ecb.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
+            ex.printStackTrace();
             errorAlert.setContentText(ex.getLocalizedMessage());
             errorAlert.showAndWait();
           }
@@ -462,6 +536,7 @@ public class UserInterface extends Application {
             decryptedFileBytes = cbc.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
+            ex.printStackTrace();
             errorAlert.setContentText(ex.getLocalizedMessage());
             errorAlert.showAndWait();
           }
@@ -473,6 +548,7 @@ public class UserInterface extends Application {
             decryptedFileBytes = ctr.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
+            ex.printStackTrace();
             errorAlert.setContentText(ex.getLocalizedMessage());
             errorAlert.showAndWait();
           }
@@ -530,9 +606,5 @@ public class UserInterface extends Application {
     vBox.setAlignment(Pos.CENTER);
     vBox.setPadding(new Insets(10, 10, 10, 10));
     return vBox;
-  }
-
-  public static void main(String[] args) {
-    launch();
   }
 }
