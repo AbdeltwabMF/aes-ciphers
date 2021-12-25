@@ -15,18 +15,22 @@ public class CBC {
   private Cipher cipher;
   private SecretKeySpec keySpec;
 
-  public byte[] encrypt(byte[] key, byte[] plaintText)
-    throws NoSuchPaddingException, NoSuchAlgorithmException,
-    InvalidKeyException, IllegalBlockSizeException,
-    BadPaddingException, InvalidAlgorithmParameterException {
+  public CBC(byte[] key)
+    throws NoSuchPaddingException, NoSuchAlgorithmException {
 
-    Cipher.getInstance("AES/CBC/PKCS5Padding");
-    SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+    cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    keySpec = new SecretKeySpec(key, "AES");
+  }
+
+  public byte[] encrypt(byte[] plaintText)
+    throws InvalidKeyException, IllegalBlockSizeException,
+    BadPaddingException, InvalidAlgorithmParameterException {
 
     byte[] IV = new byte[16];
     SecureRandom random = new SecureRandom();
     random.nextBytes(IV);
 
+    System.out.println("here");
     IvParameterSpec ivParameterSpec = new IvParameterSpec(IV);
     cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParameterSpec);
     byte[] cipherText = cipher.doFinal(plaintText);
@@ -37,13 +41,10 @@ public class CBC {
     return ivAndCipherCombinedText;
   }
 
-  public byte[] decrypt(byte[] key, byte[] cipherText)
+  public byte[] decrypt(byte[] cipherText)
     throws NoSuchPaddingException, NoSuchAlgorithmException,
     InvalidKeyException, IllegalBlockSizeException,
     BadPaddingException, InvalidAlgorithmParameterException {
-
-    cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    keySpec = new SecretKeySpec(key, "AES");
 
     /** Separate the header of encrypted file which is the IV from the cipher body */
     byte[] IV = new byte[16];

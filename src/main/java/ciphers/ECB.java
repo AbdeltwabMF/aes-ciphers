@@ -9,25 +9,29 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 public class ECB {
-  public byte[] encrypt(byte[] key, byte[] plaintText)
-    throws NoSuchPaddingException, NoSuchAlgorithmException,
-    InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+  private Cipher cipher;
+  private SecretKeySpec keySpec;
 
-    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-    SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+  public ECB(byte[] key)
+    throws NoSuchPaddingException, NoSuchAlgorithmException {
+
+    cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+    keySpec = new SecretKeySpec(key, "AES");
+  }
+
+  public byte[] encrypt(byte[] plaintText)
+    throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+
     cipher.init(Cipher.ENCRYPT_MODE, keySpec);
     byte[] cipherText = cipher.doFinal(plaintText);
 
     return cipherText;
   }
 
-  public byte[] decrypt(byte[] key, byte[] cipherText)
-    throws NoSuchPaddingException, NoSuchAlgorithmException,
-    InvalidKeyException, IllegalBlockSizeException,
+  public byte[] decrypt(byte[] cipherText)
+    throws InvalidKeyException, IllegalBlockSizeException,
     BadPaddingException {
 
-    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-    SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
     cipher.init(Cipher.DECRYPT_MODE, keySpec);
     byte[] plaintText = cipher.doFinal(cipherText);
 

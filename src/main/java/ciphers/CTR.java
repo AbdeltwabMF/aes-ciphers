@@ -12,13 +12,19 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 public class CTR {
-  public byte[] encrypt(byte[] key, byte[] plaintText)
-    throws NoSuchPaddingException, NoSuchAlgorithmException,
-    InvalidKeyException, IllegalBlockSizeException,
-    BadPaddingException, InvalidAlgorithmParameterException {
+  private Cipher cipher;
+  private SecretKeySpec keySpec;
 
-    Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
-    SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
+  public CTR(byte[] key)
+    throws NoSuchPaddingException, NoSuchAlgorithmException {
+
+    cipher = Cipher.getInstance("AES/CTR/NoPadding");
+    keySpec = new SecretKeySpec(key, "AES");
+  }
+
+  public byte[] encrypt(byte[] plaintText)
+    throws InvalidKeyException, IllegalBlockSizeException,
+    BadPaddingException, InvalidAlgorithmParameterException {
 
     byte[] IV = new byte[16];
     SecureRandom random = new SecureRandom();
@@ -34,13 +40,10 @@ public class CTR {
     return ivAndCipherCombinedText;
   }
 
-  public byte[] decrypt(byte[] key, byte[] cipherText)
+  public byte[] decrypt(byte[] cipherText)
     throws NoSuchPaddingException, NoSuchAlgorithmException,
     InvalidKeyException, IllegalBlockSizeException,
     BadPaddingException, InvalidAlgorithmParameterException {
-
-    Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
-    SecretKeySpec keySpec = new SecretKeySpec(key, "AES");
 
     /** Separate the header of encrypted file which is the IV from the cipher body */
     byte[] IV = new byte[16];

@@ -201,11 +201,10 @@ public class UserInterface extends Application {
       switch (selected_index) {
         case 0:
           //ECB
-          ECB ecb = new ECB();
+          ECB ecb = null;
           try {
-            encryptedFileBytes = ecb.encrypt(
-              Hex.toHex(keyTextField.getText()).getBytes(),
-              Files.readAllBytes(fileToBeProcessed.toPath()));
+            ecb = new ECB(Hex.toHex(keyTextField.getText()).getBytes());
+            encryptedFileBytes = ecb.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
             errorAlert.setContentText(ex.getLocalizedMessage());
@@ -214,11 +213,10 @@ public class UserInterface extends Application {
           break;
         case 1:
           //CBC
-          CBC cbc = new CBC();
+          CBC cbc = null;
           try {
-            encryptedFileBytes = cbc.encrypt(
-              Hex.toHex(keyTextField.getText()).getBytes(),
-              Files.readAllBytes(fileToBeProcessed.toPath()));
+            cbc = new CBC(Hex.toHex(keyTextField.getText()).getBytes());
+            encryptedFileBytes = cbc.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
             errorAlert.setContentText(ex.getLocalizedMessage());
@@ -227,11 +225,10 @@ public class UserInterface extends Application {
           break;
         case 2:
           //CTR
-          CTR ctr = new CTR();
+          CTR ctr = null;
           try {
-            encryptedFileBytes = ctr.encrypt(
-              Hex.toHex(keyTextField.getText()).getBytes(),
-              Files.readAllBytes(fileToBeProcessed.toPath()));
+            ctr = new CTR(Hex.toHex(keyTextField.getText()).getBytes());
+            encryptedFileBytes = ctr.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
             errorAlert.setContentText(ex.getLocalizedMessage());
@@ -255,11 +252,10 @@ public class UserInterface extends Application {
       switch (selected_index) {
         case 0:
           //ECB
-          ECB ecb = new ECB();
+          ECB ecb = null;
           try {
-            decryptedFileBytes = ecb.decrypt(
-              Hex.toHex(keyTextField.getText()).getBytes(),
-              Files.readAllBytes(fileToBeProcessed.toPath()));
+            ecb = new ECB(Hex.toHex(keyTextField.getText()).getBytes());
+            decryptedFileBytes = ecb.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
             errorAlert.setContentText(ex.getLocalizedMessage());
@@ -268,11 +264,10 @@ public class UserInterface extends Application {
           break;
         case 1:
           //CBC
-          CBC cbc = new CBC();
+          CBC cbc = null;
           try {
-            decryptedFileBytes = cbc.decrypt(
-              Hex.toHex(keyTextField.getText()).getBytes(),
-              Files.readAllBytes(fileToBeProcessed.toPath()));
+            cbc = new CBC(Hex.toHex(keyTextField.getText()).getBytes());
+            decryptedFileBytes = cbc.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
             errorAlert.setContentText(ex.getLocalizedMessage());
@@ -281,11 +276,10 @@ public class UserInterface extends Application {
           break;
         case 2:
           //CTR
-          CTR ctr = new CTR();
+          CTR ctr = null;
           try {
-            decryptedFileBytes = ctr.decrypt(
-              Hex.toHex(keyTextField.getText()).getBytes(),
-              Files.readAllBytes(fileToBeProcessed.toPath()));
+            ctr = new CTR(Hex.toHex(keyTextField.getText()).getBytes());
+            decryptedFileBytes = ctr.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
             errorAlert.setContentText(ex.getLocalizedMessage());
