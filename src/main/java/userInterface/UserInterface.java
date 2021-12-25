@@ -9,10 +9,8 @@ import javafx.geometry.Pos;
 
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -22,13 +20,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.math.BigInteger;
-
 import java.nio.file.Files;
 
 import java.security.NoSuchAlgorithmException;
 
-import java.util.Base64;
 import java.util.Scanner;
 
 public class UserInterface extends Application {
@@ -36,16 +31,16 @@ public class UserInterface extends Application {
   private Scene homeScene;
 
   private File fileToBeProcessed;
-  private File decryptedFile, encryptedFile;
   private FileChooser decryptedFileChooser, encryptedFileChooser;
 
   private double width, height;
   private TextField keyTextField;
   private Alert errorAlert, infoAlert;
   private byte[] decryptedFileBytes, encryptedFileBytes;
+  private KeyManager keyManager;
 
   @Override
-  public void start(Stage stage) throws IOException {
+  public void start(Stage stage) {
     errorAlert = new Alert(Alert.AlertType.ERROR);
     errorAlert.setHeaderText(null);
 
@@ -62,25 +57,21 @@ public class UserInterface extends Application {
       new FileChooser.ExtensionFilter("All Files", "*.*")
     );
 
-    Font.loadFont(getClass().getResourceAsStream("/Fonts/Ubuntu-Regular.ttf"), 16);
     width = 500;
     height = 400;
     initScreen();
     this.stage = stage;
     stage.setTitle("AES Encrypt-Decrypt");
     stage.setScene(homeScene);
-    stage.setHeight(442.3);
-    stage.setWidth(582.4);
-    stage.setResizable(false);
+    stage.setHeight(443);
+    stage.setWidth(583);
+    // stage.setResizable(false);
     stage.show();
-
-    stage.setOnCloseRequest(e -> {
-      System.out.println(stage.getWidth() + " " + stage.getHeight());
-    });
   }
 
   public void initScreen() {
     FileChooser fileChooser = new FileChooser();
+
     Button browseButton = new Button("Browse");
     TextField filePathTextField = new TextField();
     filePathTextField.setEditable(false);
@@ -104,16 +95,41 @@ public class UserInterface extends Application {
     filePathTextField.setMinWidth(width - 140);
 
     keyTextField = new TextField();
-    keyTextField.setMaxWidth(width - 30);
-    keyTextField.setMinWidth(width - 30);
+    keyTextField.setMaxWidth(width - 190);
+    keyTextField.setMinWidth(width - 190);
+
+    ComboBox<String> keyBitSize = new ComboBox<>();
+
+    keyBitSize.setMinWidth(150);
+    keyBitSize.setMaxWidth(150);
+    keyBitSize.setPromptText("Select a key size");
+    keyBitSize.getItems().addAll("128-Bit", "192-Bit", "256-Bit");
 
     Button generateKey = new Button("Generate");
     generateKey.setMinWidth(150);
     generateKey.setMaxWidth(150);
     generateKey.setOnAction(e -> {
       try {
-        String base64 = Base64.getEncoder().encodeToString(new KeyManager().generateKey());
-        keyTextField.setText(String.format("%x", new BigInteger(1, Base64.getDecoder().decode(base64))));
+        /* Check if the key size is set */
+        int keyBitSizeIndex = keyBitSize.getSelectionModel().getSelectedIndex();
+        switch (keyBitSizeIndex) {
+          case 0:
+            keyManager = new KeyManager(128);
+            keyTextField.setText(Validate.byteToHexString(keyManager.generateKey()));
+            break;
+          case 1:
+            keyManager = new KeyManager(192);
+            keyTextField.setText(Validate.byteToHexString(keyManager.generateKey()));
+            break;
+          case 2:
+            keyManager = new KeyManager(256);
+            keyTextField.setText(Validate.byteToHexString(keyManager.generateKey()));
+            break;
+          default:
+            errorAlert.setContentText("Set a key size first!");
+            errorAlert.showAndWait();
+            break;
+        }
       } catch (NoSuchAlgorithmException ex) {
         errorAlert.setContentText("Error on Generating key");
         errorAlert.showAndWait();
@@ -123,16 +139,25 @@ public class UserInterface extends Application {
     Button loadKey = new Button("Load");
     loadKey.setMinWidth(150);
     loadKey.setMaxWidth(150);
+
     loadKey.setOnAction(e -> {
+      if(keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
+        errorAlert.setContentText("Set a key size first!");
+        errorAlert.showAndWait();
+        return;
+      }
+
       FileChooser keyFileChooser = new FileChooser();
       keyFileChooser.getExtensionFilters().addAll(
-        new FileChooser.ExtensionFilter("Text Files", "*.txt")
+        new FileChooser.ExtensionFilter("All Files", "*.*")
       );
+
       File keyFile = keyFileChooser.showOpenDialog(stage);
       if (keyFile != null) {
         try {
           Scanner sc = new Scanner(keyFile);
-          keyTextField.setText(sc.next());
+          String loadedKey = sc.next();
+          keyTextField.setText(loadedKey);
         } catch (Exception ex) {
           errorAlert.setContentText("Choose a valid txt file!");
           errorAlert.showAndWait();
@@ -168,21 +193,21 @@ public class UserInterface extends Application {
     });
 
     HBox keyHBox = makeHBox();
-    keyHBox.getChildren().addAll(generateKey, loadKey, saveKey);
+    keyHBox.getChildren().addAll(keyBitSize, keyTextField);
+
+    HBox keyButtonsHBox = makeHBox();
+    keyButtonsHBox.getChildren().addAll(generateKey, loadKey, saveKey);
 
     VBox keyInputAndOptionsVBox = makeVBox();
-    keyInputAndOptionsVBox.getChildren().addAll(keyTextField, keyHBox);
+    keyInputAndOptionsVBox.getChildren().addAll(keyHBox, keyButtonsHBox);
 
     TitledBorder keyTitledBorder = new TitledBorder("Key", keyInputAndOptionsVBox);
 
     ComboBox<String> modes = new ComboBox<>();
-    modes.setId("modes");
     modes.setMinWidth(width - 30);
     modes.setMaxWidth(width - 30);
-    modes.getItems().addAll("ECB");
-    modes.getItems().addAll("CBC");
-    modes.getItems().addAll("CTR");
     modes.setPromptText("Select a Block Cipher Mode");
+    modes.getItems().addAll("ECB Mode", "CBC Mode", "CTR Mode");
 
     Button encryptButton = new Button("Encrypt");
     encryptButton.setMinWidth(width / 2 - 20);
@@ -192,18 +217,103 @@ public class UserInterface extends Application {
     decryptButton.setMaxWidth(width / 2 - 20);
 
     encryptButton.setOnAction(e -> {
-      int selected_index = modes.getSelectionModel().getSelectedIndex();
+      /* Check if no file is selected throw an error */
       if (fileToBeProcessed == null) {
         errorAlert.setContentText("Choose a file!");
         errorAlert.showAndWait();
         return;
       }
-      switch (selected_index) {
+
+      if(keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
+        errorAlert.setContentText("Set a key size first!");
+        errorAlert.showAndWait();
+        return;
+      }
+
+      String keyTextFieldString = keyTextField.getText().trim();
+      byte[] keyTextFieldBytes = keyTextFieldString.getBytes();
+      try {
+        if (Validate.checkHex(keyTextFieldString)) {
+          keyTextFieldBytes = Validate.hexToByte(keyTextFieldString);
+
+          switch (keyTextFieldString.length()) {
+            case 32:
+              keyBitSize.setPromptText("128-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(128);
+              } else {
+                keyManager.setKeySize(128);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            case 48:
+              keyBitSize.setPromptText("192-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(192);
+              } else {
+                keyManager.setKeySize(192);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            case 64:
+              keyBitSize.setPromptText("256-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(256);
+              } else {
+                keyManager.setKeySize(256);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            default:
+              errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+              errorAlert.showAndWait();
+              return;
+          }
+        } else {
+          switch (keyTextFieldString.length()) {
+            case 8:
+              keyBitSize.setPromptText("128-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(128);
+              } else {
+                keyManager.setKeySize(128);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            case 12:
+              keyBitSize.setPromptText("192-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(192);
+              } else {
+                keyManager.setKeySize(192);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            case 16:
+              keyBitSize.setPromptText("256-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(256);
+              } else {
+                keyManager.setKeySize(256);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            default:
+              errorAlert.setContentText("Wrong key size.\nKey might be a string of length(8, 12, or 16)");
+              errorAlert.showAndWait();
+              return;
+          }
+        }
+      } catch (Exception ex) {
+        ex.printStackTrace();
+      }
+
+      int selectedIndex = modes.getSelectionModel().getSelectedIndex();
+      switch (selectedIndex) {
         case 0:
-          //ECB
-          ECB ecb = null;
+          ECB ecb;
           try {
-            ecb = new ECB(Hex.toHex(keyTextField.getText()).getBytes());
+            ecb = new ECB(keyTextFieldBytes);
             encryptedFileBytes = ecb.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
@@ -212,10 +322,9 @@ public class UserInterface extends Application {
           }
           break;
         case 1:
-          //CBC
-          CBC cbc = null;
+          CBC cbc;
           try {
-            cbc = new CBC(Hex.toHex(keyTextField.getText()).getBytes());
+            cbc = new CBC(keyTextFieldBytes);
             encryptedFileBytes = cbc.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
@@ -224,10 +333,9 @@ public class UserInterface extends Application {
           }
           break;
         case 2:
-          //CTR
-          CTR ctr = null;
+          CTR ctr;
           try {
-            ctr = new CTR(Hex.toHex(keyTextField.getText()).getBytes());
+            ctr = new CTR(keyTextFieldBytes);
             encryptedFileBytes = ctr.encrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveEncryptedFile();
           } catch (Exception ex) {
@@ -236,9 +344,10 @@ public class UserInterface extends Application {
           }
           break;
         default:
+          /* case -1: */
           errorAlert.setContentText("Select an encryption mode!");
           errorAlert.showAndWait();
-          return;
+          break;
       }
     });
 
@@ -249,12 +358,96 @@ public class UserInterface extends Application {
         errorAlert.showAndWait();
         return;
       }
+
+      if(keyBitSize.getSelectionModel().getSelectedIndex() == -1) {
+        errorAlert.setContentText("Set a key size first!");
+        errorAlert.showAndWait();
+        return;
+      }
+
+      String keyTextFieldString = keyTextField.getText().trim();
+      byte[] keyTextFieldBytes = keyTextFieldString.getBytes();
+      try {
+        if (Validate.checkHex(keyTextFieldString)) {
+          keyTextFieldBytes = Validate.hexToByte(keyTextFieldString);
+
+          switch (keyTextFieldString.length()) {
+            case 32:
+              keyBitSize.setPromptText("128-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(128);
+              } else {
+                keyManager.setKeySize(128);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            case 48:
+              keyBitSize.setPromptText("192-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(192);
+              } else {
+                keyManager.setKeySize(192);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            case 64:
+              keyBitSize.setPromptText("256-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(256);
+              } else {
+                keyManager.setKeySize(256);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            default:
+              errorAlert.setContentText("Wrong key size.\nKey might be a hex value of length(32, 48, or 64)");
+              errorAlert.showAndWait();
+              return;
+          }
+        } else {
+          switch (keyTextFieldString.length()) {
+            case 8:
+              keyBitSize.setPromptText("128-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(128);
+              } else {
+                keyManager.setKeySize(128);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            case 12:
+              keyBitSize.setPromptText("192-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(192);
+              } else {
+                keyManager.setKeySize(192);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            case 16:
+              keyBitSize.setPromptText("256-Bit");
+              if (keyManager == null) {
+                keyManager = new KeyManager(256);
+              } else {
+                keyManager.setKeySize(256);
+                keyManager.setSymmetricKey(keyTextFieldBytes);
+              }
+              break;
+            default:
+              errorAlert.setContentText("Wrong key size.\nKey might be a string of length(8, 12, or 16)");
+              errorAlert.showAndWait();
+              return;
+          }
+        }
+      } catch (Exception ex) {
+        ex.printStackTrace();
+      }
+
       switch (selected_index) {
         case 0:
-          //ECB
-          ECB ecb = null;
+          ECB ecb;
           try {
-            ecb = new ECB(Hex.toHex(keyTextField.getText()).getBytes());
+            ecb = new ECB(keyTextFieldBytes);
             decryptedFileBytes = ecb.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
@@ -263,10 +456,9 @@ public class UserInterface extends Application {
           }
           break;
         case 1:
-          //CBC
-          CBC cbc = null;
+          CBC cbc;
           try {
-            cbc = new CBC(Hex.toHex(keyTextField.getText()).getBytes());
+            cbc = new CBC(keyTextFieldBytes);
             decryptedFileBytes = cbc.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
@@ -275,10 +467,9 @@ public class UserInterface extends Application {
           }
           break;
         case 2:
-          //CTR
-          CTR ctr = null;
+          CTR ctr;
           try {
-            ctr = new CTR(Hex.toHex(keyTextField.getText()).getBytes());
+            ctr = new CTR(keyTextFieldBytes);
             decryptedFileBytes = ctr.decrypt(Files.readAllBytes(fileToBeProcessed.toPath()));
             showSuccessAndSaveDecryptedFile();
           } catch (Exception ex) {
@@ -311,7 +502,7 @@ public class UserInterface extends Application {
   private void showSuccessAndSaveDecryptedFile() throws IOException {
     infoAlert.setHeaderText("File decrypted successfully");
     infoAlert.showAndWait();
-    decryptedFile = decryptedFileChooser.showSaveDialog(stage);
+    File decryptedFile = decryptedFileChooser.showSaveDialog(stage);
     if (decryptedFile != null) {
       Files.write(decryptedFile.toPath(), decryptedFileBytes);
     }
@@ -320,20 +511,10 @@ public class UserInterface extends Application {
   private void showSuccessAndSaveEncryptedFile() throws IOException {
     infoAlert.setHeaderText("File encrypted successfully!");
     infoAlert.showAndWait();
-    encryptedFile = encryptedFileChooser.showSaveDialog(stage);
+    File encryptedFile = encryptedFileChooser.showSaveDialog(stage);
     if (encryptedFile != null) {
       Files.write(encryptedFile.toPath(), encryptedFileBytes);
     }
-  }
-
-  private GridPane makeGridPane() {
-    GridPane gridPane = new GridPane();
-    gridPane.setHgap(10);
-    gridPane.setVgap(10);
-    gridPane.setAlignment(Pos.BASELINE_CENTER);
-    gridPane.setPadding(new Insets(10, 10, 10, 10));
-
-    return gridPane;
   }
 
   private HBox makeHBox() {

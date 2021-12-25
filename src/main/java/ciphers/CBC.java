@@ -30,7 +30,6 @@ public class CBC {
     SecureRandom random = new SecureRandom();
     random.nextBytes(IV);
 
-    System.out.println("here");
     IvParameterSpec ivParameterSpec = new IvParameterSpec(IV);
     cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParameterSpec);
     byte[] cipherText = cipher.doFinal(plaintText);
