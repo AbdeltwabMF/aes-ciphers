@@ -70,3 +70,12 @@
 .combo-box-base .arrow-button .arrow {
     -fx-background-color: #FFF;
 }
+
+.text-field {
+    -fx-font-family: binchotan;
+}
+
+.button:hover,
+.combo-box:hover {
+    -fx-background-color: linear-gradient(#38b55b, #388550);
+}
