@@ -26,7 +26,7 @@ public class CTR {
 
     IvParameterSpec ivParameterSpec = new IvParameterSpec(IV);
     cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivParameterSpec);
-    byte[] cipherText = cipher.doFinal();
+    byte[] cipherText = cipher.doFinal(plaintText);
 
     /** Return IV + Cipher combined text  */
     byte[] ivAndCipherCombinedText = combineIvAndCipherText(IV, cipherText);
@@ -44,11 +44,11 @@ public class CTR {
 
     /** Separate the header of encrypted file which is the IV from the cipher body */
     byte[] IV = new byte[16];
-    for(int i = 0; i < 16; ++i) {
+    for (int i = 0; i < 16; ++i) {
       IV[i] = cipherText[i];
     }
     byte[] cipherTextBody = new byte[cipherText.length - 16];
-    for(int i = 16; i < cipherText.length; ++i) {
+    for (int i = 16; i < cipherText.length; ++i) {
       cipherTextBody[i - 16] = cipherText[i];
     }
 
@@ -59,14 +59,16 @@ public class CTR {
     return plaintText;
   }
 
-  /** Adding IV vector at the header of the encrypted text */
+  /**
+   * Adding IV vector at the header of the encrypted text
+   */
   private byte[] combineIvAndCipherText(byte[] IV, byte[] encryptedText) {
     byte[] combinedText = new byte[16 + encryptedText.length];
 
-    for(int i = 0; i < 16; ++i) {
+    for (int i = 0; i < 16; ++i) {
       combinedText[i] = IV[i];
     }
-    for(int i = 0; i < encryptedText.length; ++i) {
+    for (int i = 0; i < encryptedText.length; ++i) {
       combinedText[i + 16] = encryptedText[i];
     }
 

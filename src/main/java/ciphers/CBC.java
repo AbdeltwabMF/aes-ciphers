@@ -57,7 +57,7 @@ public class CBC {
 
     IvParameterSpec ivParameterSpec = new IvParameterSpec(IV);
     cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParameterSpec);
-    byte[] plaintText = cipher.doFinal(cipherText);
+    byte[] plaintText = cipher.doFinal(cipherTextBody);
 
     return plaintText;
   }
